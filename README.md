@@ -1,6 +1,12 @@
 # Linux G15 Daemon [Logitech G110 and others keyboards]
 G15 Daemon + G15 Macro + Led Control for G110 and other Logitech keyboard on Linux 
 
+#### Video Tutorial:
+
+* ITALIAN https://www.youtube.com/watch?v=AnyfWFa_Ku0
+
+* ENGLISH https://www.youtube.com/watch?v=8gAT-BbyOWw
+
 #### Install:
 
 * cd libusb1-1.4.1
