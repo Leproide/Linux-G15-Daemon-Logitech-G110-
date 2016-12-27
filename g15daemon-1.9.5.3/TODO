@@ -1,0 +1,35 @@
+********************************************************************************
+TODO list for G15daemon.  Not in any particular order.
+********************************************************************************
+
+PARTIALLY DONE - Add manpage and other documentation for the client library and it's
+  bindings.
+
+DONE (G15Macro) - Add client to record & playback macros.
+
+- add a few simple template client examples in various languages
+
+DONE - Read a configuration file.
+
+DONE - Allow for clients to change LCD backlight.
+
+DONE - enable the M-key backlights - the library supports this
+
+- write a small client app to set configuration options on-the-fly (M-key
+toggle, backlight, etc)
+
+DONE - Allow for clients to request sole use of the 'L' keys (perhaps passing
+their status back to the client via MSGs on the socket.
+
+- Allow for clients to send text-based commands controlling the output (need
+interpreter for this)
+
+- Allow for clients to set a time-to-live for screens they create, which
+will allow the client app to exit without taking the screen with them. 
+
+- Clients using the above functionality ought to be able to re-connect and
+use the 'screen' they previously created, as long as they return within the
+'time-to-live' period they set before exiting. This will allow for scripts
+etc to periodically update.
+
+- Add DBUS proxy.

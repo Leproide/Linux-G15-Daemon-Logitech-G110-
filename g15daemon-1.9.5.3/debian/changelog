@@ -1,0 +1,108 @@
+g15daemon 1.9.5.3 edgy; urgency=low
+ * BugFix: plugins/g15daemon_net.c: ensure that OOB traffic is not mixed with
+           normal image buffers.
+ * Feature: Add --set-backlight to allow clients (and the backlight button)
+           to set the backlight level for the currently shown screen only. 
+ 	   Default is now to disallow clients changing backlight, and to set 
+	   backlight globally via the button.
+
+ -- Mike Lampard <mlampard@users.sourceforge.net> Thu, 31 Jan 2008 15:47:06 +1030
+
+g15daemon 1.9.5.2 edgy; urgency=high
+  * BugFix: IS_USER_SELECTED client command was broken. fix it.
+  * BugFix: restore client ability to change backlight state.
+
+ -- Mike Lampard <mlampard@users.sourceforge.net> Sat, 26 Jan 2008 11:36:04 +1030
+
+g15daemon 1.9.5.1 edgy; urgency=high
+  * BugFix: If lcd refresh is requested whilst processing, refreshes were missed.
+  * Optimisation: The delay between screen updates is no longer required. remove.
+
+g15daemon 1.9.5 edgy; urgency=low
+  * Add example udev helper scripts to contrib directory.
+  * API:     Add NEVER_SELECT cmd to client API to enforce non-display on
+	     client-switch.  Used by G15Macro if available.
+  * Debug:   Add segfault handler to libg15daemon_client to aid debugging
+	     clients.
+  * Feature: Add screendump ability.  Pressing M1+M3 simultaneously will write
+	     a pbm format image of the currently displayed screen to 
+	     /tmp/g15daemon-sc-?.pbm, where ? is an incremental number.
+  * BugFix:  Only wakeup display thread if LCD buffer is visible.
+  * Packaging: Fix debian packaging to include plugins.
+
+g15daemon 1.9.4 edgy; urgency=low
+  * Debug:   Log warning if keyboard disappears.
+  * Bugfix:  Fix autoconf autodetect bugs re uinput plugin.
+  * Feature: If autodetection of uinput fails, configure now has a
+             --disable-uinput override.  
+  * Feature: WIP should now compile and run on Linux, MacOSX, and Solaris (v10+).
+  	     Only Linux and Solaris have been tested.
+  * Debug:   Add more debugging to plugin loader.
+  * Debug:   Log build date,OS and GCC version.
+  * Feature: Plugin loader will now use DEEP_BIND if available, hopefully
+             resolving conflicts on OS's that support it.
+  * Feature: Solaris support.  Requires some end-user changes to the usb
+	     stack at the moment.  Documentation coming soon.
+  * BugFix:  Plugin loader is now much more robust.
+  * Feature: Add OS specific documentation for Linux and FreeBSD.
+	     Compilation and use on FreeBSD is completely untested.
+  * Feature: Debug verbosity of g15daemon_log is now variable.
+  * Feature: Plugin filenames are now cached in g15daemon.conf to allow
+	     (manual, at this stage) changing of load-order.
+  * Portability: Add our own daemon() function if platform doesn't have native
+	     support.
+  * TidyUp:  Wrap keyboard read function.
+  * TidyUp:  Make all plugin-internal functions static.
+  * Portability: Remove mutexes on Solaris, as libusb (and therefore libg15)
+	     blocks on read.
+  * Optimisation: Use pthread conditional variable to signal LCD state change.
+	     Further reduces unnecessary wakeups.
+
+g15daemon 1.9.3 edgy; urgency=low
+  * BugFix: The documentation for --switch was inverted. Fix.
+  * Debug:  Print list of commandline args when in debug mode
+  * BugFix: The decreased delay caused keypresses to be misread on some
+            machines.  REVERT.
+
+g15daemon 1.9.2 edgy; urgency=low
+  * BugFix: Add exitfunc to net plugin for exit notification.
+  * BugFix: Use pause() instead of sleeping
+  * BugFix: create leaving var as volatile.
+  * BugFix: Add NAME section to g15daemon_client manpages
+  * Tweak delay between successive keyboard reads.  This reduces cpu load by
+    50% on my system.
+  * Bugfix: Ensure that all plugin exit functions are called on leaving.
+  * Bugfix: if keypress event is received (very early in the startup process,
+            the daemon would crash.  Check that expected pointers are valid.
+  * Bugfix: Dont attempt compilation of uinput plugin if headers are
+            unavailable.
+  * Bugfix: Write a blank buffer to the LCD before exiting.
+  * Feature: Add --lcdlevel cmdline option to allow setting default LCD brightness level
+
+g15daemon 1.9.1 edgy; urgency=low
+  * BugFix: Plugins are now installed in ${PREFIX}/{${LIBDIR}/g15daemon/${VERSION}/plugins
+  * Feature: OS-X support thanks to Fabrizio Sestito.
+  * Bugfix: libg15daemon_client: keypresses were being corrupted.
+  * Bugfix: libg15daemon_client: use g15_recv rather than recv.
+  * Bugfix: use default scheduling for all threads.
+  * Optimisation: minor optimisation of lcd_cycle() code.
+  * Security: repair some potential security holes.
+  * Bugfix: Backlight status was being mis-applied when cycling screens.
+  * Bugfix: Language bindings were not being distributed.
+
+g15daemon 1.9.0 edgy; urgency=low
+  * Feature: Add plugin API
+  * Feature: partially rewritten event core 
+  * Feature: updated g15daemon_xmms_spectrum plugin with new features, available in trunk/g15daemon_audio_plugins (SVN)
+  * Feature: Clock is now a plugin
+  * Feature: dependency on libdaemon is now removed
+  * Feature: g15daemon is now dependant on libg15render.
+  * Feature: Clock now includes analog clock thanks to Rasta Freak <igor.jusic@zg.t-com.hr>
+  * Moved g15daemon_xmms_spectrum plugin to separate package
+ 
+g15daemon (1.2.1-1) breezy; urgency=low
+
+  * Initial release 
+
+ -- Anthony J. Mirabella <mirabeaj@gmail.com>  Thu, 28 Sep 2006 04:46:06 -0400
+

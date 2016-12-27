@@ -1,0 +1,98 @@
+Index: g15.c
+===================================================================
+RCS file: /cvsroot/lcdproc/lcdproc/server/drivers/g15.c,v
+retrieving revision 1.1
+diff -a -u -r1.1 g15.c
+--- g15.c	13 Aug 2006 15:55:47 -0000	1.1
++++ g15.c	12 Nov 2006 02:05:36 -0000
+@@ -30,6 +30,7 @@
+ #include <errno.h>
+ #include <syslog.h>
+ #include <sys/socket.h>
++#include <sys/types.h>
+ #include <libg15.h>
+ #include <g15daemon_client.h>
+ #include <libg15render.h>
+@@ -70,6 +71,7 @@
+    p->cellheight = G15_CELL_HEIGHT;
+    p->backlight_state = BACKLIGHT_ON;
+    p->g15screen_fd = 0;
++   p->g15d_ver = g15daemon_version();
+ 
+    if((p->g15screen_fd = new_g15_screen(G15_G15RBUF)) < 0)
+    {
+@@ -109,15 +111,8 @@
+ 	
+ 	g15_close_screen(p->g15screen_fd);
+ 	
+-	if (p != NULL) {
+-		if (p->canvas)
+-			free(p->canvas);
+-		
+-		if (p->backingstore)
+-			free(p->backingstore);
+-
+-		free(p);
+-	}
++	if (p != NULL)
++	  free(p);
+ 	drvthis->store_private_ptr(drvthis, NULL);
+ }
+ 
+@@ -372,14 +367,35 @@
+ MODULE_EXPORT const char * g15_get_key (Driver *drvthis)
+ {
+ 	PrivateData *p = drvthis->private_data;
+-	
++	int toread = 0;
+ 	unsigned int key_state = 0;
+-	
+-	if(send(p->g15screen_fd, "k", 1, MSG_OOB)<1) /* request key status */
+-        report(RPT_INFO, "%s: Error in send to g15daemon", drvthis->name);    
+ 
+-    	recv(p->g15screen_fd, &key_state , sizeof(key_state),0);
++	if ((strncmp("1.2", p->g15d_ver, 3)))
++	  {	/* other than g15daemon-1.2 (should be >=1.9) */
++		fd_set fds;
++		struct timeval tv;
++		memset (&tv, 0, sizeof(struct timeval));
++
++		FD_ZERO(&fds);
++		FD_SET(p->g15screen_fd, &fds);
++	
++		toread = select(FD_SETSIZE, &fds, NULL, NULL, &tv);
++	  }
++	else
++	  {	/* g15daemon-1.2 */
++		if(send(p->g15screen_fd, "k", 1, MSG_OOB)<1) /* request key status */
++		  {
++	 	  	report(RPT_INFO, "%s: Error in send to g15daemon", drvthis->name);
++			return NULL;
++		  }
++		toread = 1;
++	  }
+ 	
++	if (toread >= 1)
++	  read(p->g15screen_fd, &key_state, sizeof(key_state));
++	else
++	  return NULL;
++
+ 	if (key_state & G15_KEY_G1)
+ 		return "Escape";
+ 	else if (key_state & G15_KEY_L1)
+Index: g15.h
+===================================================================
+RCS file: /cvsroot/lcdproc/lcdproc/server/drivers/g15.h,v
+retrieving revision 1.1
+diff -a -u -r1.1 g15.h
+--- g15.h	13 Aug 2006 15:55:47 -0000	1.1
++++ g15.h	12 Nov 2006 02:05:36 -0000
+@@ -32,6 +32,8 @@
+ 	int cellwidth, cellheight;
+ 	/* file descriptor for g15daemon socket */
+ 	int g15screen_fd;
++	/* g15daemon version for compatibility checks */
++	const char *g15d_ver;
+ 	/* canvas for LCD contents */
+ 	g15canvas *canvas;
+ 	g15canvas *backingstore;

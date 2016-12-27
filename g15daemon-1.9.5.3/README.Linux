@@ -1,0 +1,7 @@
+$Revision: 377 $ 
+$Date: 2008-01-01 21:56:13 +1030 (Tue, 01 Jan 2008) $
+$Author: mlampard $
+
+G15Daemon should compile and run just fine with no intervention.
+
+Please read the README and manpages for further info.

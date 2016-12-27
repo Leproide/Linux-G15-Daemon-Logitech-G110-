@@ -1,0 +1,56 @@
+#!/bin/sh
+# Init script for the G15daemon
+# for Redhat/Mandriva based systems
+#
+# Copyright (c)2006 Mike Lampard
+#
+# This script is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# any later version.
+#
+# This script is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this file; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
+#
+. /etc/rc.d/init.d/functions
+
+[ -f /usr/sbin/g15daemon ] || exit 0
+
+case "$1" in
+
+  start)    
+	    echo "Starting G15daemon"
+	    /sbin/modprobe uinput
+            /usr/sbin/g15daemon 
+            echo
+            ;;
+  stop)
+	    echo "Stopping G15daemon"
+	    /usr/sbin/g15daemon -k
+            echo
+            ;;
+  restart)
+	    echo "Restarting G15daemon"
+            /usr/sbin/g15daemon -k
+            /usr/sbin/g15daemon
+            echo
+            ;;
+  status)
+	    echo ""
+	    /usr/sbin/g15daemon --version
+            echo
+            ;;
+  *) 
+            gprintf "$0 {start|stop|restart|reload|status}\n"
+            exit 1
+            ;;
+
+esac
+
+exit ${RETVAL}

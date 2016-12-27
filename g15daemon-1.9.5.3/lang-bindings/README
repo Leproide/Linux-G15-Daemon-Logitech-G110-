@@ -1,0 +1,16 @@
+***** Perl bindings *****
+To use the perl language bindings for libg15daemon_client, copy the
+G15Daemon.pm file into a perl include folder, or untar the archive and run
+the makefile with:
+
+perl Makefile.PL && make && make install
+
+You'll need to have the
+Inline:: perl module installed, which is (as usual) available on CPAN.
+
+The bindings are pretty basic, see the contribs folder for an example of
+use.
+
+***** Python Bindings *****
+The pyg15daemon bindings are available in this folder, or the latest release
+of these bindings are available at http://abraumhal.de/pyg15daemon/

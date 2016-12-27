@@ -1,0 +1,346 @@
+diff -urN graphlcd-base-0.1.3-orig/glcddrivers/drivers.c graphlcd-base-0.1.3/glcddrivers/drivers.c
+--- graphlcd-base-0.1.3-orig/glcddrivers/drivers.c	2006-01-16 00:52:36.000000000 +1030
++++ graphlcd-base-0.1.3/glcddrivers/drivers.c	2006-07-08 13:18:40.000000000 +0930
+@@ -26,7 +26,7 @@
+ #include "noritake800.h"
+ #include "avrctl.h"
+ #include "serdisp.h"
+-
++#include "g15daemon.h"
+ namespace GLCD
+ {
+ 
+@@ -46,6 +46,7 @@
+ 	{"noritake800",   kDriverNoritake800},
+ 	{"avrctl",        kDriverAvrCtl},
+ 	{"serdisp",       kDriverSerDisp},
++	{"g15daemon",     kDriverG15daemon},
+ 	{"",              kDriverUnknown}
+ };
+ 
+@@ -82,6 +83,7 @@
+ 		case kDriverNoritake800  : return new cDriverNoritake800(config);
+ 		case kDriverAvrCtl       : return new cDriverAvrCtl(config);
+ 		case kDriverSerDisp      : return new cDriverSerDisp(config);
++		case kDriverG15daemon    : return new cDriverG15daemon(config);
+ 		case kDriverUnknown      :
+ 		default                  : return NULL;
+ 	}
+diff -urN graphlcd-base-0.1.3-orig/glcddrivers/drivers.h graphlcd-base-0.1.3/glcddrivers/drivers.h
+--- graphlcd-base-0.1.3-orig/glcddrivers/drivers.h	2006-01-16 00:51:54.000000000 +1030
++++ graphlcd-base-0.1.3/glcddrivers/drivers.h	2006-07-08 13:04:04.000000000 +0930
+@@ -37,7 +37,8 @@
+ 	kDriverImage         = 11,
+ 	kDriverNoritake800   = 12,
+ 	kDriverAvrCtl        = 13,
+-	kDriverSerDisp       = 100
++	kDriverSerDisp       = 100,
++	kDriverG15daemon     = 200
+ };
+ 
+ struct tDriver
+diff -urN graphlcd-base-0.1.3-orig/glcddrivers/g15daemon.c graphlcd-base-0.1.3/glcddrivers/g15daemon.c
+--- graphlcd-base-0.1.3-orig/glcddrivers/g15daemon.c	1970-01-01 09:30:00.000000000 +0930
++++ graphlcd-base-0.1.3/glcddrivers/g15daemon.c	2006-07-13 11:44:00.000000000 +0930
+@@ -0,0 +1,218 @@
++/*
++* GraphLCD driver library
++*
++* g15daemon.c  -  pseudo device for the g15daemon meta driver
++*                   Output goes to the g15daemon which then displays it
++*
++* This file is released under the GNU General Public License. Refer
++* to the COPYING file distributed with this package.
++*
++*/
++
++#include <fcntl.h>
++#include <stdio.h>
++#include <syslog.h>
++#include <unistd.h>
++#include <sys/mman.h>
++#include <sys/ioctl.h>
++#include <poll.h>
++#include <arpa/inet.h>
++#include <unistd.h>
++
++#include "common.h"
++#include "config.h"
++
++#include "g15daemon.h"
++
++#define G15SERVER_PORT 15550
++#define G15SERVER_ADDR "127.0.0.1"
++
++#define G15_WIDTH 160
++#define G15_HEIGHT 43
++
++
++static int g15_send(int sock, char *buf, int len)
++{
++    int total = 0;
++    int retval = 0;
++    int bytesleft = len;
++
++    while(total < len) {
++        retval = send(sock, buf+total, bytesleft, 0);
++        if (retval == -1) { 
++            break; 
++        }
++        bytesleft -= retval;
++        total += retval;
++    }
++    return retval==-1?-1:0;
++} 
++
++static int g15_recv(int sock, char *buf, int len)
++{
++    int total = 0;
++    int retval = 0;
++    int bytesleft = len; 
++
++    while(total < len) {
++        retval = recv(sock, buf+total, bytesleft, 0);
++        if (retval < 1) { 
++            break; 
++        }
++        total += retval;
++        bytesleft -= retval;
++    }
++    return total;
++} 
++
++static int open_g15_daemon()
++{
++    int g15screen_fd;
++    struct sockaddr_in serv_addr;
++
++    char buffer[256];
++
++    g15screen_fd = socket(AF_INET, SOCK_STREAM, 0);
++    if (g15screen_fd < 0) 
++        return -1;
++
++    memset(&serv_addr, 0, sizeof(serv_addr));
++    serv_addr.sin_family      = AF_INET;
++    inet_aton (G15SERVER_ADDR, &serv_addr.sin_addr);
++    serv_addr.sin_port        = htons(G15SERVER_PORT);
++
++    if (connect(g15screen_fd,(struct sockaddr *)&serv_addr,sizeof(serv_addr)) < 0) 
++        return -1;
++
++    memset(buffer,0,256);
++    if(g15_recv(g15screen_fd, buffer, 16)<0)
++        return -1;
++
++    /* here we check that we're really talking to the g15daemon */
++    if(strcmp(buffer,"G15 daemon HELLO") != 0)
++        return -1;
++    
++    /* we want to use a pixelbuffer */
++    g15_send(g15screen_fd,"GBUF",4);
++
++    return g15screen_fd;
++}
++
++
++namespace GLCD
++{
++
++    cDriverG15daemon::cDriverG15daemon(cDriverConfig * config)
++    :	config(config),
++    offbuff(0),
++    sockfd(-1)
++    {
++        oldConfig = new cDriverConfig(*config);
++    }
++
++    cDriverG15daemon::~cDriverG15daemon()
++    {
++        delete oldConfig;
++    }
++
++    int cDriverG15daemon::Init()
++    {
++    // default values
++        width = config->width;
++        if (width !=G15_WIDTH)
++            width = G15_WIDTH;
++        height = config->height;
++        if (height !=G15_HEIGHT)
++            height = G15_HEIGHT;
++
++        for (unsigned int i = 0; i < config->options.size(); i++) {
++            if (config->options[i].name == "") {
++            }
++        }
++                                                                    
++        screensize = 6880;
++
++        if((sockfd = open_g15_daemon())<0)
++            return -1;
++    // reserve memory to draw into
++        offbuff = new char[6880];
++
++        *oldConfig = *config;
++
++    // clear display
++        Refresh(true);
++                        
++        syslog(LOG_INFO, "%s: g15daemon initialized.\n", config->name.c_str());
++        return 0;
++    }
++
++    int cDriverG15daemon::DeInit()
++    {
++        if (offbuff);
++        delete[] offbuff;
++        if (-1 != sockfd)
++            close(sockfd);
++    
++        return 0;
++    }
++
++    int cDriverG15daemon::CheckSetup()
++    {
++        if (config->device != oldConfig->device ||
++            config->port != oldConfig->port ||
++            config->width != oldConfig->width ||
++            config->height != oldConfig->height)
++        {
++            DeInit();
++            Init();
++            return 0;
++        }
++
++        if (config->upsideDown != oldConfig->upsideDown ||
++            config->invert != oldConfig->invert)
++        {
++            oldConfig->upsideDown = config->upsideDown;
++            oldConfig->invert = config->invert;
++            return 1;
++        }
++        return 0;
++    }
++
++    void cDriverG15daemon::SetPixel(int x, int y)
++    {
++        if (x >= width || y >= height)
++            return;
++
++        if (config->upsideDown)
++        {
++            x = width - 1 - x;
++            y = height - 1 - y;
++        }
++
++        offbuff[x + (width * y)] = 1;
++    }
++
++    void cDriverG15daemon::Clear()
++    {
++        memset(offbuff, 0, screensize);
++    }
++
++    void cDriverG15daemon::Set8Pixels(int x, int y, unsigned char data)
++    {
++        int n;
++
++        x &= 0xFFF8;
++
++        for (n = 0; n < 8; ++n)
++        {
++            if (data & (0x80 >> n))      // if bit is set
++                SetPixel(x + n, y);
++        }
++    }
++
++    void cDriverG15daemon::Refresh(bool refreshAll)
++    {
++        g15_send(sockfd, offbuff, screensize);
++    }
++
++} // end of namespace
+diff -urN graphlcd-base-0.1.3-orig/glcddrivers/g15daemon.h graphlcd-base-0.1.3/glcddrivers/g15daemon.h
+--- graphlcd-base-0.1.3-orig/glcddrivers/g15daemon.h	1970-01-01 09:30:00.000000000 +0930
++++ graphlcd-base-0.1.3/glcddrivers/g15daemon.h	2006-07-08 16:49:46.000000000 +0930
+@@ -0,0 +1,49 @@
++/*
++ * GraphLCD driver library
++ *
++ * g15daemon.h  -  pseudo device for the g15daemon
++ *                   Output goes to the g15daemon which then displays it
++ *
++ */
++
++#ifndef _GLCDDRIVERS_G15DAEMON_H_
++#define _GLCDDRIVERS_G15DAEMON_H_
++
++#include "driver.h"
++
++
++namespace GLCD
++{
++
++class cDriverConfig;
++
++class cDriverG15daemon : public cDriver
++{
++private:
++	unsigned char ** LCD;
++	cDriverConfig * config;
++	cDriverConfig * oldConfig;
++	char *offbuff;
++	int sockfd;
++	long int screensize;
++	char *fbp;
++	int zoom;
++
++	int CheckSetup();
++	void SetPixel(int x, int y);
++
++public:
++	cDriverG15daemon(cDriverConfig * config);
++	virtual ~cDriverG15daemon();
++
++	virtual int Init();
++	virtual int DeInit();
++
++	virtual void Clear();
++	virtual void Set8Pixels(int x, int y, unsigned char data);
++	virtual void Refresh(bool refreshAll = false);
++};
++
++} // end of namespace
++
++#endif
+diff -urN graphlcd-base-0.1.3-orig/glcddrivers/Makefile graphlcd-base-0.1.3/glcddrivers/Makefile
+--- graphlcd-base-0.1.3-orig/glcddrivers/Makefile	2006-01-16 00:47:01.000000000 +1030
++++ graphlcd-base-0.1.3/glcddrivers/Makefile	2006-07-08 14:29:03.000000000 +0930
+@@ -12,9 +12,9 @@
+ 
+ LIBNAME = $(BASENAME).$(VERMAJOR).$(VERMINOR).$(VERMICRO)
+ 
+-OBJS = common.o config.o driver.o drivers.o port.o simlcd.o framebuffer.o gu140x32f.o gu256x64-372.o gu256x64-3900.o hd61830.o ks0108.o image.o sed1330.o sed1520.o t6963c.o noritake800.o serdisp.o avrctl.o
++OBJS = common.o config.o driver.o drivers.o port.o g15daemon.o simlcd.o framebuffer.o gu140x32f.o gu256x64-372.o gu256x64-3900.o hd61830.o ks0108.o image.o sed1330.o sed1520.o t6963c.o noritake800.o serdisp.o avrctl.o
+ 
+-HEADERS = config.h driver.h drivers.h port.h simlcd.h framebuffer.h gu140x32f.h gu256x64-372.h gu256x64-3900.h hd61830.h ks0108.h image.h sed1330.h sed1520.h t6963c.h noritake800.h serdisp.h avrctl.h
++HEADERS = config.h driver.h drivers.h port.h g15daemon.h simlcd.h framebuffer.h gu140x32f.h gu256x64-372.h gu256x64-3900.h hd61830.h ks0108.h image.h sed1330.h sed1520.h t6963c.h noritake800.h serdisp.h avrctl.h
+ 
+ 
+ ### Implicit rules:
+diff -urN graphlcd-base-0.1.3-orig/graphlcd.conf graphlcd-base-0.1.3/graphlcd.conf
+--- graphlcd-base-0.1.3-orig/graphlcd.conf	2006-01-16 03:41:20.000000000 +1030
++++ graphlcd-base-0.1.3/graphlcd.conf	2006-07-08 14:08:00.000000000 +0930
+@@ -116,6 +116,11 @@
+ 
+ ########################################################################
+ 
++[g15daemon]
++Driver=g15daemon
++Width=160
++Height=43
++
+ [framebuffer]
+ # framebuffer driver
+ #  Output goes to a framebuffer device

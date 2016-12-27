@@ -1,0 +1,100 @@
+diff -x 'base*' -ur xkb-orig/rules/xorg xkb/rules/xorg
+--- xkb-orig/rules/xorg	2006-08-31 23:34:45.000000000 +0930
++++ xkb/rules/xorg	2006-10-24 09:58:16.000000000 +0930
+@@ -47,7 +47,8 @@
+               qtronix \
+               samsung4500 samsung4510 \
+               sk1300 sk2500 sk6200 sk7100 sp_inet \
+-              sven symplon toshiba_s3000 trust trustda yahoo
++              sven symplon toshiba_s3000 trust trustda yahoo \
++              g15daemon
+ 
+ // all layouts with 3rd and 4th groups
+ ! $threelevellayouts = al az \
+diff -x 'base*' -ur xkb-orig/rules/xorg.lst xkb/rules/xorg.lst
+--- xkb-orig/rules/xorg.lst	2006-08-31 23:34:45.000000000 +0930
++++ xkb/rules/xorg.lst	2006-10-24 09:59:05.000000000 +0930
+@@ -114,6 +114,7 @@
+   power_g5        Power G5
+   silvercrest     SILVERCREST Multimedia Wireless Keyboard
+   emachines       Laptop/notebook eMachines m68xx
++  g15daemon	  Logitech G15 keyboard support via G15Daemon
+ 
+ ! layout
+   us              U.S. English
+diff -x 'base*' -ur xkb-orig/rules/xorg.xml xkb/rules/xorg.xml
+--- xkb-orig/rules/xorg.xml	2006-08-31 23:34:45.000000000 +0930
++++ xkb/rules/xorg.xml	2006-10-24 10:00:06.000000000 +0930
+@@ -2815,6 +2815,12 @@
+     </model>
+     <model>
+       <configItem>
++        <name>g15daemon</name>
++        <description>Logitech G15 keyboard support via G15Daemon</description>
++      </configItem>
++    </model>
++    <model>
++      <configItem>
+         <name>yahoo</name>
+         <description>Yahoo! Internet Keyboard</description>
+         <description xml:lang="af">Yahoo! Internetsleutelbord</description>
+diff -x 'base*' -ur xkb-orig/symbols/inet xkb/symbols/inet
+--- xkb-orig/symbols/inet	2006-08-31 23:34:55.000000000 +0930
++++ xkb/symbols/inet	2006-10-25 01:31:18.000000000 +0930
+@@ -2028,3 +2028,56 @@
+     key <K67>  { [ XF86MyComputer ] };
+     key <XFER> { [ XF86AudioMedia ] };
+ };
++
++partial alphanumeric_keys
++xkb_symbols "g15daemon" {
++
++    name[Group1]= "Logitech G15 keyboard support via G15Daemon";
++    key <MDSW> {         [     XF86Launch1 ] };
++    key <XFER> {         [     XF86Launch8 ] };
++    key  <I02> {         [     XF86Launch9 ] };
++    key <NFER> {         [     XF86Launch2 ] };
++    key  <I04> {         [    XF86Pictures ] };
++    key <AE13> {         [   XF86Messenger ] };
++    key  <I08> {         [     XF86LaunchD ] };
++    key  <I09> {         [     XF86Support ] };
++    key  <I0A> {         [        XF86Word ] };
++    key  <I0F> {         [     XF86LaunchF ] };
++    key  <I10> {         [   XF86AudioPrev ] };
++    key  <I16> {         [      XF86LogOff ] };
++    key  <I18> {         [     XF86Launch5 ] };
++    key  <I19> {         [   XF86AudioNext ] };
++    key  <I20> {         [   XF86AudioMute ] };
++    key  <I21> {         [  XF86Calculator ] };
++    key  <I22> {         [   XF86AudioPlay ] };
++    key  <I23> {         [       XF86Spell ] };
++    key  <I24> {         [   XF86AudioStop ] };
++    key  <K5A> {         [  XF86VendorHome ] };
++    key  <I2E> {         [ XF86AudioLowerVolume ] };
++    key  <I30> {         [ XF86AudioRaiseVolume ] };
++    key  <I31> {         [     XF86Launch4 ] };
++    key  <I32> {         [    XF86HomePage ] };
++    key  <K5D> {         [   XF86Messenger ] };
++    key  <K5E> {         [      XF86WebCam ] };
++    key  <K5F> {         [     XF86Launch0 ] };
++    key  <I3C> {         [       XF86Music ] };
++    key  <K63> {         [     XF86Launch6 ] };
++    key  <I42> {         [     XF86Forward ] };
++    key  <I43> {         [        XF86Send ] };
++    key  <K6D> {         [    XF86Calendar ] };
++    key <HKTG> {         [     XF86Launch7 ] };
++    key  <K71> {         [     XF86LaunchB ] };
++    key  <K72> {         [     XF86LaunchC ] };
++    key  <I57> {         [        XF86Save ] };
++    key  <K74> {         [         XF86WWW ] };
++    key  <K75> {         [     XF86LaunchE ] };
++    key  <I5F> {         [       XF86Sleep ] };
++    key  <I64> {         [    XF86Pictures ] };
++    key  <I67> {         [     XF86LaunchA ] };
++    key  <I6C> {         [        XF86Mail ] };
++    key  <I6D> {         [  XF86AudioMedia ] };
++    key  <I76> {         [      XF86iTouch ] };
++    key  <I77> {         [     XF86Launch3 ] };
++    key  <I79> {         [    XF86ToDoList ] };
++    key  <I7B> {         [  XF86Calculater ] };
++};

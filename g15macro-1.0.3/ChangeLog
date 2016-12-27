@@ -1,0 +1,26 @@
+1.0 29/12/06
+- Initial release
+1.0.1
+- best used with g15daemon wip
+- disable XTest extension by default, run configure with --enable-xtest to
+  enable.  The default is now to use XSendEvent.
+- Improve reliability - the lockups occasionally seen in version 1.0 should
+  be resolved.
+- fix processing of key-up events.
+- ensure safe exit on receipt of signal
+- Fix XTest event output
+- Fix order of events, release was being sent before press.
+- increase max number of key up/down events recorded to 1024
+1.0.2
+- Add --dump (-d) option to dump recorded macros in human-readable format
+- Add --version (-v)
+- Add --debug (-g) to add some debugging
+1.0.3:
+- Switch to a textual configuration file.  Auto-converts to new format from binary
+  config if it exists. Only Semi-readable, but better than a binary dump.
+- Ensure each keypress is received by X11 in sequence.
+- Add mutexes where appropriate.
+- Apply patch from 'schitso' that fixes cancellation of an in-progress recording via
+  any of the M keys, and moves repeated code into their own functions.
+- Add --help, --keysonly cmdline options.  --keysonly configures keymaps
+  (including multimedia keys) then exits.

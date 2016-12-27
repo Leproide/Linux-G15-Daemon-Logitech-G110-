@@ -1,0 +1,22 @@
+
+Mike Lampard <mlampard@users.sf.net>
+- primary developer
+
+Sven Ludwig 
+- Python bindings
+
+James Green
+- Documentaion updates
+
+Anthony J. Mirabella
+- numerous miscellaneous fixes and improvements to just about everything.
+
+Lars Sanders
+- Clock plugin fixes
+
+Fabrizio Sestito
+- changes required to compile on OS-X
+- OS-X kext file
+
+Matthew McGee
+- Solaris Documentation

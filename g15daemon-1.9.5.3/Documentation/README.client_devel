@@ -1,0 +1,247 @@
+G15daemon Client Development()                  G15daemon Client Development()
+
+
+
+[1mSYNOPSIS[0m
+       #include <libg15.h>
+       #include <g15daemon_client.h>
+
+       link with
+
+       -lg15daemon_client
+
+       int new_g15_screen(int screentype);
+       int g15_close_screen(int sock);
+       int g15_send(int sock, char *buf, unsigned int len);
+       int g15_recv(int sock, char *buf, unsigned int len);
+
+[1mG15Daemon Server / Client communication[0m
+       G15Daemon uses INET sockets to talk to its clients, listening on local-
+       host port 15550 for connection requests.  Once  connected,  the  server
+       sends  the text string "G15 daemon HELLO" to confirm to the client that
+       it is a valid g15daemon process, creates a new screen,  and  waits  for
+       LCD  buffers  or commands to be sent from the client.  Clients are able
+       to create multiple screens simply by opening more socket connections to
+       the  server  process.  If the socket is closed or the client exits, all
+       LCD buffers and the screen associated with that  socket  are  automati-
+       cally destroyed.
+
+       Clients  wishing  to display on the LCD must send entire screens in the
+       format of their choice.  Currently partial screen updates  (icons  etc)
+       are not supported.
+
+       G15Daemon  commands  are  sent  to the daemon via the OOB (out-of-band)
+       messagetype, replies are sent inband back to the client.
+
+
+[1mint new_g15_screen(int screentype)[0m
+       Opens a new connection and returns a network socket for use.  Creates a
+       screen  with  one  of  the  following  pixel formats defined in g15dae-
+       mon_client.h:
+
+       G15_PIXELBUF:  this buffer must be exactly 6880 bytes, and uses 1  byte
+       per pixel.
+
+       G15_TEXTBUF:   currently ignored by the daemon.
+
+       G15_WBMPBUF:   this is a packed pixel buffer in WBMP format with 8 pix-
+       els per byte. Useful for perl programmers using the  GD::  and  G15Dae-
+       mon.pm (see lang_bindings directory) perl modules.
+
+       G15_G15RBUF:   another  packed  pixel  buffer  type,  also  with 8 pix-
+       els/byte, and is the native libg15render format.
+
+       Example of use:
+
+       int screen_fd = new_g15_screen( G15_WBMPBUF );
+
+
+
+
+
+
+[1mint g15_close_screen (int screen_fd)[0m
+       Simply closes a socket previously opened  with  new_g15_screen().   The
+       daemon  will  automatically  clean  up  any  buffers and remove the LCD
+       screen from the display list.
+
+       Returns 0 if successful, or errno if there was an error.
+
+       Example:
+
+       int retval = 0; int screen_fd = new_g15_screen( G15_WBMPBUF );
+
+
+       retval = g15_close_screen( screen_fd );
+
+
+[1mint g15_send (int sock, char *buf, unsigned int len)[0m
+       A simple wrapper around send() to ensure that all 'len' bytes  of  data
+       is sent to the daemon.  It simply uses poll() to block until the entire
+       message is sent.
+
+       Returns 0 on success, -1 if the send failed due to  timeout  or  socket
+       error.
+
+
+
+
+[1mint g15_recv (int sock, char *buf, unsigned int len)[0m
+       A  simple  wrapper around recv() to ensure that all 'len' bytes of data
+       are received from the daemon.  It simply uses poll() to block until the
+       entire message is received.
+
+       Returns  0  on  success, -1 if the recv failed due to timeout or socket
+       error.
+
+
+[1mG15Daemon Command Types[0m
+       Commands and requests to the daemon are  sent  via  OOB  data  packets.
+       Changes  to  the  backlight and mkey state will only affect the calling
+       client.  The following commands are supported  as  defined  in  g15dae-
+       mon_client.h:
+
+
+       G15DAEMON_KEY_HANDLER
+              Requests  that  all M and G key presses are sent to this client.
+              All keys are packed into an unsigned int, and sent to the client
+              inband when a key is pressed.
+
+
+       G15DAEMON_MKEYLEDS
+              Sets  the  M  key LED state.  In order to change LED state, each
+              LED that is to be turned on is OR'd with the command byte.   See
+              libg15.h for values.  For examples see the end of this document.
+
+
+       G15DAEMON_BACKLIGHT
+              Sets the LCD Backlight brightness.  Brightness level (0|1|2)  is
+              OR'd  with  the  command byte.  For examples see the end of this
+              document.
+
+
+       G15DAEMON_CONTRAST
+              Sets the LCD contrast.  Contrast level (0|1|2) is OR'd with  the
+              command byte.  For examples see the end of this document.
+
+
+       G15DAEMON_GET_KEYSTATE
+              Requests  a  packet containing the current keystate.  The daemon
+              will return an unsigned int containing any  keys  pressed.   See
+              libg15.h  for details on key values, and lcdclient_test.c in the
+              source distribution for an example.
+
+
+       G15DAEMON_SWITCH_PRIORITIES
+              Toggles the client's LCD screen to/from the front.  Clients  can
+              check their foreground/background state with the following:
+
+
+       G15DAEMON_IS_FOREGROUND
+              On  reciept of this command, G15Daemon will send a 1 byte packet
+              back with the value 1 if the client is foreground, or 0 if  not.
+
+
+       G15DAEMON_IS_USER_SELECTED
+              On  reciept  of this command, G15daemon will return a byte indi-
+              cating if the user selected the client be  foreground  or  back-
+              ground.
+
+
+[1mEXAMPLES[0m
+       Below is a completely nonsensical client which demonstrates most of the
+       commands.
+
+       --- Cut here ---
+
+       #include <stdio.h>
+       #include <stdlib.h>
+       #include <string.h>
+       #include <sys/types.h>
+       #include <sys/socket.h>
+       #include <errno.h>
+       #include <poll.h>
+       #include <g15daemon_client.h>
+       #include <libg15.h>
+
+       int main(int argc, char *argv[]) {
+           int g15screen_fd, retval;
+           char lcdbuffer[6880];
+           unsigned int keystate;
+           char msgbuf[256];
+
+           if((g15screen_fd = new_g15_screen(G15_PIXELBUF))<0){
+               printf("Sorry, cant connect to the G15daemon0);
+               return -1;
+           }else
+               printf("Connected to  g15daemon.   sending  image\n");       /*
+       create a half black image */
+               memset(lcdbuffer,0,6880);
+               memset(lcdbuffer,1,6880/2);
+
+            /* send the image to the daemon */
+               retval = g15_send(g15screen_fd,(char*)lcdbuffer,6880);
+
+               printf("checking key status - press G1 to exit0,retval);
+
+               while(1){
+                   keystate = 0;
+                   memset(msgbuf,0,256);                 /* request key status
+       */
+                   if(send(g15screen_fd,      G15DAEMON_GET_KEYSTATE,       1,
+       MSG_OOB)<1)
+                       printf("Error in send0);
+                   retval      =      recv(g15screen_fd,      &keystate      ,
+       sizeof(keystate),0);
+                   if(keystate)
+                       printf("keystate = %i0,keystate);
+
+                 /* quit if G1 is pressed */
+                   if(keystate & G15_KEY_G1 ) /* See libg15.h for  details  on
+       key values. */
+                       break;
+
+                   memset(msgbuf,0,5);
+                   /* G2,G3 & G4 change LCD backlight */
+                   if(keystate & G15_KEY_G2 ){
+                       msgbuf[0]=G15_BRIGHTNESS_DARK|G15DAEMON_BACKLIGHT;
+                       send(g15screen_fd,msgbuf,1,MSG_OOB);
+                   }
+                   if(keystate & G15_KEY_G3 ){
+                       msgbuf[0]=G15_BRIGHTNESS_MEDIUM|G15DAEMON_BACKLIGHT;
+                       send(g15screen_fd,msgbuf,1,MSG_OOB);
+                   }
+                   if(keystate & G15_KEY_G4 ){
+                       msgbuf[0]=G15_BRIGHTNESS_BRIGHT|G15DAEMON_BACKLIGHT;
+                       send(g15screen_fd,msgbuf,1,MSG_OOB);
+                   }
+
+                   msgbuf[0]=G15DAEMON_IS_FOREGROUND; /* are we viewable? */
+                   send(g15screen_fd,msgbuf,1,MSG_OOB);
+                   recv(g15screen_fd,msgbuf,1,0);
+                   if(msgbuf[0])
+                     printf("Hey, we are in the foreground, Doc0);
+                   else
+                     printf("What   dastardly  wabbit  put  me  in  the  back-
+       ground?0);
+
+                   if(msgbuf[0]){ /* we've been backgrounded! */
+                       sleep(2); /* remain in the background for a bit */
+                       msgbuf[0] = G15DAEMON_SWITCH_PRIORITIES; /* switch pri-
+       orities */
+                       send(g15screen_fd,msgbuf,1,MSG_OOB);
+                       sleep(2);
+                       send(g15screen_fd,msgbuf,1,MSG_OOB);
+                   }
+
+                   usleep(5000);
+               }
+               g15_close_screen(g15screen_fd);
+               return 0; }
+
+       -- end cutting --
+
+
+
+
+G15Daemon                             1.0       G15daemon Client Development()

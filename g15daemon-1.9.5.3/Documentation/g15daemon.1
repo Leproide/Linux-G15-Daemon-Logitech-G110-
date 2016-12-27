@@ -1,0 +1,163 @@
+.TH "G15Daemon" "1" "1.3" "G15tools - G15Daemon" "1"
+.SH "NAME"
+g15daemon \- provides access to extra keys and the LCD available on the logitech G15 keyboard.
+.SH "DESCRIPTION"
+G15Daemon allows users access to all extra keys by decoding them and pushing them back into the kernel via the linux UINPUT driver.  This driver must be loaded before g15daemon can be used for keyboard access.
+
+The G15 LCD is also supported.  By default, with no other clients active, g15daemon will display a clock.  Client applications and scripts can access the LCD via a simple API.
+.SH "OPTIONS"
+The current version of G15Daemon understands the following options:
+.br 
+.P 
+.HP
+\-v 	  Show version info.
+.P
+.HP
+\-s	 By default, g15daemon uses the L1 key to switch between client screens.  Using this switch on the cmdline alters this, making
+MR (Macro Record) the button to achieve this function.
+.P
+.HP
+\-k	  Stop a previously running copy of G15Daemon.  For the keys and LCD to work, you'll have to restart the daemon manually.
+.P
+.HP
+\-h	  Show a brief summary of commandline options available.
+
+.SH "BASIC USAGE"
+G15Daemon must be run as the root user, either from a startup script (sample scripts are available in the contrib folder) or manually, via the su command.  
+
+To run the daemon with default options, run:
+
+	g15daemon
+
+or
+
+	g15daemon \-s
+to have the MR key as the client screen switch.
+
+If all required libraries are installed and in locations known to your operating system, the daemon will slip quietly into the background and a clock will appear on the LCD.  
+Congratulations!  The linux kernel will now output keycodes for all your extra keys.
+
+.SH "Using the keys in X11"
+Current versions of the Xorg Xserver dont have support for the extra keys that g15daemon provides.  This support will be available in the next release of Xorg (7.2).
+
+For now, if you want access to the extra keys for hotkey support in X11, you need to run the xmodmaprc script on each start of X.  This script is available in the contrib folder (if g15daemon is installed in the default location, the contrib folder is in /usr/share/doc/g15daemon\-${VERSION}/contrib 
+
+Depending on your linux distribution, copying the xmodmaprc file (or pasting the text below) into ~/.Xmodmap may be all that's required.
+
+.SH "Xmodmaprc file"
+Copy the following into ~/.Xmodmap (depending on your distribution) for X11 to recognise all extra G15 keys:
+
+\-\- cut here \-\-
+.br
+keycode  93 = XF86Launch1
+.br
+keycode 129 = XF86Launch8
+.br
+keycode 130 = XF86Launch9
+.br
+keycode 131 = XF86Launch2
+.br
+keycode 132 = XF86Phone
+.br
+keycode 133 = XF86Messenger
+.br
+keycode 136 = XF86LaunchD
+.br
+keycode 137 = XF86Support
+.br
+keycode 138 = XF86Word
+.br
+keycode 143 = XF86LaunchF
+.br
+keycode 144 = XF86AudioPrev
+.br
+keycode 150 = XF86LogOff
+.br
+keycode 152 = XF86Launch5
+.br
+keycode 153 = XF86AudioNext
+.br
+keycode 160 = XF86AudioMute
+.br
+keycode 161 = XF86Travel
+.br
+keycode 162 = XF86AudioPlay
+.br
+keycode 163 = XF86Spell
+.br
+keycode 164 = XF86AudioStop
+.br
+keycode 170 = XF86VendorHome
+.br
+keycode 174 = XF86AudioLowerVolume
+.br
+keycode 176 = XF86AudioRaiseVolume
+.br
+keycode 177 = XF86Launch4
+.br
+keycode 178 = XF86HomePage
+.br
+keycode 182 = XF86Away
+.br
+keycode 183 = XF86WebCam
+.br
+keycode 184 = XF86Launch0
+.br
+keycode 188 = XF86Music
+.br
+keycode 190 = XF86Launch6
+.br
+keycode 194 = XF86Forward
+.br
+keycode 195 = XF86Send
+.br
+keycode 205 = XF86Calendar
+.br
+keycode 208 = XF86Launch7
+.br
+keycode 209 = XF86LaunchB
+.br
+keycode 210 = XF86LaunchC
+.br
+keycode 215 = XF86Save
+.br
+keycode 219 = XF86WWW
+.br
+keycode 220 = XF86LaunchE
+.br
+keycode 223 = XF86Sleep
+.br
+keycode 228 = XF86Pictures
+.br
+keycode 231 = XF86LaunchA
+.br
+keycode 236 = XF86Mail
+.br
+keycode 237 = XF86AudioMedia
+.br
+keycode 246 = XF86iTouch
+.br
+keycode 247 = XF86Launch3
+.br
+keycode 249 = XF86ToDoList
+.br
+keycode 251 = XF86Calculater
+.br
+\-\- end cutting \-\-
+.SH "AUTHORS"
+The latest release of g15daemon is available at
+.P
+http://g15daemon.sourceforge.net
+.P
+G15daemon was written by Mike Lampard mlampard@users.sourceforge.net and uses the libg15 library by Philip Lawatsch and Anthony J. Mirabella of the g15tools project. (g15tools.sourceforge.net)
+.P
+The Python bindings for libg15daemon_client were written by Sven Ludwig.
+.P
+Many thanks to everyone who has assisted in reporting bugs, misfeatures and made feature requests.
+
+An up to date list of all authors is available in the AUTHORS file distributed in the source.
+
+.SH "LICENSE"
+G15daemon, libg15daemon_client and other sourcecode in this package are licensed under the GPL (General Public License), version 2 or later.  Details on this license are available in the LICENSE document in the root directory of the source package, and at http://www.fsf.org
+
+

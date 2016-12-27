@@ -1,0 +1,90 @@
+This  file  contains  some frequently asked questions and answers
+regarding G15Daemon and it's installation.
+
+Q1.     G15daemon complains that it can't find libg15.so.1 !!
+Q1a.	G15daemon complains that it can't find libg15render.so.1 !!
+Answer:
+
+Some of the g15 libraries are installed in /usr/local/lib.
+Some distros don't look  there  for libraries by  default.  There 
+are two ways around this - 
+
+1. add /usr/local/lib to /etc/ld.so.conf (you'll need to be root)
+   and run ldconfig or 
+
+2.rerun the library configure script with --prefix=/usr,then make 
+   && make install. This  will install  libg15  into the /usr/lib 
+   directory.
+
+
+Q2.     G15daemon  complains  about  not receiving a return value
+and won't run!!
+
+Answer:
+
+G15daemon really needs to be run by the user root.   If  you  are
+already running as root, and you still see this error, please let
+us know.
+
+
+Q3.     My 'G' keys dont work in X11 !!
+
+Answer:
+
+The daemon adds new scancodes for all the G & M keys.  X11 doesnt
+understand  some  of these.  In order to have the keys work in X,
+you'll find an xmodmaprc script and a bash script in the  contrib
+directory.  Copy the xmodmaprc file to $HOME/.Xmodmap and set the
+bash script to run every time X11 starts.  KDE has  an  AutoStart
+folder you can put it in, Gnome probably has something similar.
+
+
+Q4.	What devices are currently supported with G15Daemon?
+
+Answer:
+
+G15Daemon is designed to support whatever devices libg15 supports.
+Currently,this means the G15 Keyboard(s), the G11 Keyboard and Z10
+Speakers.
+
+
+Q5.	Are there any forums supporting the G15Tools?
+
+Answer:
+
+Yes. There are several.  G15Tools now has it's own site, including
+forums, at www.g15tools.com.There are also forums on the g15daemon
+project site: http://sourceforge.net/projects/g15daemon, and a few
+Linux distributions have threads setup for G15Tools users.
+
+
+Q6.	Why doesn't G15Daemon use DBUS or DCOP?
+
+Answer:
+
+DBUS is a nice thing, however it's very new and is not  available 
+everywhere. We try to keep dependancies to the minimum, and using 
+DBUS would mean we have to ensure that G15Daemon is loaded  after
+the DBUS server, which is something we can't guarantee. Down  the
+track we will look at providing a DBUS G15Daemon proxy.
+
+
+Q7.	Is G15Daemon able to run on my operating system?
+
+Answer:
+
+G15Daemon  currently has  support  for Linux, MacOSX and Solaris.
+Some Linux  distributions  include the  G15Tools in their package
+managers, however those may not be up-to-date.
+
+FreeBSD  support is possible, see  README.FreeBSD  for details on
+how you can try it out.  FreeBSD  support is completely untested,
+however it may work.  Please  let us know  if  it works  for you.
+
+
+Q8.	Will G15Daemon ever run on Windows?
+
+Answer:
+
+It might, but not by design.  There is commercial support from
+Logitech for that operating system.

@@ -1,0 +1,19 @@
+#!/bin/bash
+# G15Daemon udev script to start/stop the daemon
+# when device is connected.
+# requires a udev script in the udev rules directory
+# see 99-g15daemon.rules as an example.
+
+case $ACTION in
+        "add")
+                # start g15daemon on keyboard connect
+                sudo g15daemon
+                ;;
+        "remove")
+                # kill g15daemon on keyboard disconnect
+                sudo g15daemon -k
+                ;;
+        *)
+                exit 0
+                ;;
+esac

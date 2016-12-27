@@ -1,0 +1,124 @@
+*************************************************************************************************
+Solaris 10+ support is here as of Jan-1-2008
+
+	G15 Daemon 1.9.4
+	LibG15Render-1.2
+	LibG15-1.2.5
+
+Fully tested on Solaris 10 and and OpenSolaris 11 (Nevada) with G15 Version 1 and G15 Version 2.
+The other keyboards should function but I have not tested them.
+I will be trying to keep up with new versions and providing packages as needed.
+All packages are in SV datastream format.
+You can install them using 'pkgadd -d http://URL to package all'
+*************************************************************************************************
+
+G15 Daemon requires Solaris 10 and later with libusb installed.
+
+SUNWlibusb                       Sun wrapper library for libusb
+SUNWlibusbS                      libusb (source)
+SUNWlibusbugen                   SUN libusb ugen plugin
+SUNWlibusbugenS                  libusbugen plugin (source)
+
+*************************************************************************************************
+Compiling from source :
+	Note :	Compiling code on Opensolaris 11 (Nevada) does not guarantee
+	the binaries will be functional on Solaris 10.
+*************************************************************************************************
+
+If installing from SVN you must have the following packages from http://sunfreeware.com
+installed into /usr/local/bin :
+
+autoconf-2.60-sol10-x86-local
+automake-1.10-sol10-x86-local
+libiconv-1.11-sol10-x86-local
+make-3.81-sol10-x86-local
+perl-5.8.8-sol10-x86-local
+gcc-3.4.6-sol10-x86-local
+libtool-1.5.24-sol10-x86-local
+m4-1.4.7-sol10-x86-local
+
+When compiling LibG15 from SVN you may need to set 
+LD_LIBRARY_PATH=/lib:/usr/lib:/usr/sfw/lib:/opt/g15/lib
+export LD_LIBRARY_PATH
+
+If installing from a release source package you must fist compile and install
+at least LibG15 1.2.5 and LibG15Render-1.2.
+No other packages are required.
+
+Successfully configure options are as follows :
+./configure --prefix=/opt/g15 'LDFLAGS='-L/usr/sfw/lib -L/opt/g15/lib' \
+'CPPFLAGS=-I/usr/sfw/include -I/opt/g15/include' && gmake && gmake install
+
+*************************************************************************************************
+* The following script can be used to configure the device support to Solaris and Opensolaris.
+* G15Daemon runs as user nobody so we must provide read/write permissions for user nobody
+* or you must run g15daemon with the option : --user root
+*************************************************************************************************
+
+#!/bin/ksh
+exec 2>/dev/null
+echo "Verifying the ugen driver"
+	add_drv -m '* 0666 root sys' -i 'ugen' ugen
+echo "Adding driver support for Logitech G15 V1"
+	/usr/sbin/update_drv -a -m '* 0660 nobody sys' -i '"usb46d,c222"' ugen
+echo "Adding driver support for Logitech G15 V2"
+	/usr/sbin/update_drv -a -m '* 0660 nobody sys' -i '"usb46d,c227"' ugen
+echo "Adding driver support for Logitech G11 V1"
+	/usr/sbin/update_drv -a -m '* 0660 nobody sys' -i '"usb46d,c225"' ugen
+echo "Adding driver support for Logitech Z-10 V1"
+	/usr/sbin/update_drv -a -m '* 0660 nobody sys' -i '"usb46d,0a07"' ugen
+echo "Finished installing device support."
+	touch /reconfigure
+echo "You must reboot to enable ugen in your device tree"
+
+*************************************************************************************************
+The following XML document can be used to integrate G15Daemon into SMF.
+	1. Save it to a file (Suggested location is /var/svc/manifest/site/g15daemon.xml)
+	2. verify using 'svccfg validate /path_to_file'
+	3. import using 'svccfg import /path_to_file'
+	4. enable using 'svcadm enable g15daemon'
+*************************************************************************************************
+
+<?xml version="1.0"?>
+<!DOCTYPE service_bundle SYSTEM "/usr/share/lib/xml/dtd/service_bundle.dtd.1">
+
+<service_bundle type='manifest' name='SCIG15daemon:default'>
+<service name='site/g15daemon' type='service' version='1'>
+
+        <create_default_instance enabled='false' />
+
+        <single_instance />
+
+        <dependency name='localfs' grouping='require_all' restart_on='none' type='service'>
+                <service_fmri value='svc:/system/filesystem/local' />
+        </dependency>
+
+        <dependency name='loopback' grouping='require_all' restart_on='none' type='service'>
+                <service_fmri value='svc:/network/loopback' />
+        </dependency>
+
+        <dependency name='device_files' grouping='require_any' restart_on='restart' type='path'>
+                <service_fmri value='file://localhost/dev/usb/46d.c222' />
+                <service_fmri value='file://localhost/dev/usb/46d.c225' />
+                <service_fmri value='file://localhost/dev/usb/46d.c227' />
+                <service_fmri value='file://localhost/dev/usb/46d.0a07' />
+        </dependency>
+
+        <exec_method type='method' name='start' exec='/opt/g15/sbin/g15daemon' timeout_seconds='60'/>
+        <exec_method type='method' name='stop'  exec='/opt/g15/sbin/g15daemon -k' timeout_seconds='60' />
+
+        <stability value='Unstable' />
+
+        <template>
+                <common_name><loctext xml:lang='C'>G15daemon</loctext></common_name>
+                <documentation>
+                        <manpage title='g15daemon' section='1' manpath='/opt/g15/share/man' />
+                        <manpage title='g15daemon_client_devl' section='3' manpath='/opt/g15/share/man' />
+                </documentation>
+        </template>
+</service>
+</service_bundle>
+
+*************************************************************************************************
+Please read the README and manpages for further info.
+*************************************************************************************************

@@ -1,0 +1,6 @@
+[Primary Authors]
+	Mike Lampard <mlampard@users.sourceforge.net>
+
+[Contributions by:]
+	Tyler (schitzo) - provided patch that fixes cancellation of an in-progress recording via
+			  any of the M keys, and moves repeated code into their own functions.

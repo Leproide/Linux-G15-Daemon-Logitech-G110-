@@ -1,0 +1,78 @@
+** README G15Daemon 1.2 **
+
+$Revision: 357 $ 
+$Date: 2007-12-26 19:36:11 +1030 (Wed, 26 Dec 2007) $
+$Author: mlampard $
+
+
+G15daemon  takes control of the G15 keyboard, allowing the use of
+all keys through the linux kernel uinput device driver.  It  also
+controls  the use of the keyboard's LCD display, allows multiple,
+simultaneous client applications to connect, and gives  the  user
+the  ability to switch between client apps at the press of a but-
+ton.
+
+Currently, patches to enable support for the daemon are available
+for  libgraphlcd, which in turn enables support for lcdproc, vdr,
+and any other applications able to use that  library.   A  simple
+xmms  spectrum analyser plugin, based on the finespectrum plugin,
+is available separately.
+
+G15daemon depends on libg15 from G15tools.
+
+[INSTALLING]
+
+To  install, enter the directory you've extracted the archive in-
+to, and type:
+
+make make install
+
+[RUNNING THE DAEMON] G15daemon must  be  run  by  the  superuser,
+root, as it writes to system logs.  There is a sample init script
+in the contrib directory that could be used to run the daemon  on
+system startup.
+
+to run : g15daemon
+
+to kill a previously running daemon : g15daemon -k
+
+[USING THE EXTRA KEYS]
+
+*** Please Note ***
+
+   As  of  version  1.2, the MR key is used for switching between
+LCD clients,         and cannot be used for other purposes if the
+LCD is being used.
+
+[EDIT]  As  of 30/10/06 svn, the client switch key can be altered
+from L1 to MR by specifying -s on the g15daemon commandline. This 
+is not recommended.
+
+***
+
+For a number of reasons, by default the keys on the G15 arent us-
+able  -  especially without g15daemon :)  With g15daemon running,
+the kernel will know all about the new keys, but your 'X'  server
+won't  without  a  bit  of help.  In the contrib subfolder of the
+g15daemon distrobution, you'll find an xmodmaprc script.  To have
+all  those  new  keys working in X11, you'll need to have xmodmap
+read that file on  every  startup.   Depending  on  your  distro,
+xmodmap  may  automatically  load  the  file  if  it is copied to
+${HOME}/.Xmodmap otherwise you will have  to  load  it  yourself.
+There is an example xmodmap.sh file in the contrib directory that
+will do this, if it's placed (for instance)  in  kde's  Autostart
+folder.
+
+[USING THE LCD]
+
+Patches  are  available for libgraphlcd, in the g15daemon patches
+subdirectory.  You'll need a copy of graphlcd  source,  which  is
+available  from  http://graphlcd.berlios.de  .  The  patches  are
+against the current version, which is 1.3.
+
+To patch the graphlcd source, extract the graphlcd-base  archive,
+then    type:    patch   -p0   -i   "g15daemon_src_folder"/patch-
+es/graphlcd-1.3_g15daemon_drv.patch
+
+where 'g15daemon_src_folder' is the directory you  extracted  the
+g15daemon sourcecode into...

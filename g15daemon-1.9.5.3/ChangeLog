@@ -1,0 +1,175 @@
+/*
+    This file is part of g15daemon.
+
+    g15daemon is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    g15daemon is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with g15daemon; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+    
+    (c) 2006-2008 Mike Lampard, Philip Lawatsch, and others
+    
+    $Revision: 458 $ -  $Date: 2008-01-31 15:48:40 +1030 (Thu, 31 Jan 2008) $ $Author: mlampard $
+
+    This daemon listens on localhost port 15550 for client connections,
+    and arbitrates LCD display.  Allows for multiple simultaneous clients.
+    Client screens can be cycled through by pressing the 'L1' key.
+*/
+
+Version 1.0-pre0
+- Initial release
+1.1 21/07/2006
+- Add WBMP support and Perl bindings.
+1.2 31/07/2006
+** IMPORTANT NOTE **
+This release has changed the LCD screen switch function to the MR key to
+allow clients use of all 'L' keys.
+**
+- reduce per-thread stack usage - default was 8Mb on i386 linux.  now 256k
+  this makes top output look much nicer ;)
+- optimize lcd buffer path, removing a conversion step. and reducing the
+  buffer size from 7k to 1k
+- misc other memory optimisations.
+- added python bindings (thanks muhgatus)
+- added ability for lcd clients to receive L G & M key keypresses directly
+- moved lcd display/client switch from L1 to MR
+- MR key is now backlit when clients are attached.
+- Added ability for lcd clients to change backlight brightness
+- Added ability for lcd clients to toggle M-key LEDs
+- Added libG15Render client support.
+- Added ability for hidden lcd clients to bring themselves to the foreground
+- clients change only their own backlight/mkey led status
+1.2.1 06/08/2006
+- Fix bug which could cause client screens to be lost under certain circumstances.
+1.2.2 28/10/2006
+- Vastly improve latency issues when using 'G' keys
+- Documentation updates
+- includes xkb patch for xorg 7.1 for native g15 keyboard layout in X11 (contrib directory)
+1.2.3 30/10/2006
+- improved the Xmodmaprc configuration, it now has parity with the xkb version
+1.2.4 01/11/2006
+- Users can now choose to use the L1 key to switch between client screens instead of MR. 
+  - L1 is the small round black button directly below the LCD.
+  - Use -s on the commandline to activate the change.
+1.2.5 05/11/2006
+- Add ability for clients to request all M and G keypresses be 'pushed' to them,
+  rather than having to request them repeatedly.  If a client uses this
+  option, no keyboard processing is done by the daemon, and the client must
+  be prepared to do uinput processing itself, if necessary.  This limitation
+  may be removed in future versions of the API.  Normal processing will
+  resume when the client that requested this feature exits or closes its
+  connection.
+- Add manpage for the daemon.
+- Fix automake bug that caused documentation not to be installed by default.
+- Fix the daemons cmdline processing to handle more than one commandline option.
+- Refactored the code slightly to allow for easier modification in the future.
+- Handle long commandline arguments such as --help --version --kill --switch.
+- Greatly improve error reporting.
+- Add client development documentation (man g15daemon_client_devel / README.client_devel)
+- Added a 'debug' mode (-d or --debug) cmdline switch to keep the daemon in the foreground
+  rather than daemonising.  All errors and other info will be reported to STDERR in this mode.
+- If compiled with libg15 1.1.0 or greater (or svn versions later than 3/11/06), the daemon 
+  will now reset the keyboard to defaults on exit.
+- make distcheck && make dist now work as expected.
+- libg15daemon_client is now slightly more useful
+- debian packaging now installs manpages
+1.2.5svn -> current
+- Add compiletime check for uinput version, should resolve compilation problems on some distro's
+- Security improved - the daemon now sets its effective uid to nobody as soon as possible.
+1.9.0
+- Feature: Add plugin API
+- Feature: partially rewritten event core 
+- Feature: updated g15daemon_xmms_spectrum plugin with new features, available in trunk/g15daemon_audio_plugins (SVN)
+- Feature: Clock is now a plugin
+- Feature: dependency on libdaemon is now removed
+- Feature: g15daemon is now dependant on libg15render.
+- Feature: Clock now includes analog clock thanks to Rasta Freak <igor.jusic@zg.t-com.hr>
+- Moved g15daemon_xmms_spectrum plugin to separate package
+1.9.1
+- BugFix: Plugins are now installed in ${PREFIX}/{${LIBDIR}/g15daemon/${VERSION}/plugins
+- Feature: OS-X support thanks to Fabrizio Sestito.
+- Bugfix: libg15daemon_client: keypresses were being corrupted.
+- Bugfix: libg15daemon_client: use g15_recv rather than recv.
+- Bugfix: use default scheduling for all threads.
+- Optimisation: minor optimisation of lcd_cycle() code.
+- Security: repair some potential security holes.
+- Bugfix: Backlight status was being mis-applied when cycling screens.
+- Bugfix: Language bindings were not being distributed.
+1.9.2
+- BugFix: Add exitfunc to net plugin for exit notification.
+- BugFix: Use pause() instead of sleeping
+- BugFix: create leaving var as volatile.
+- BugFix: Add NAME section to g15daemon_client manpages
+- Tweak delay between successive keyboard reads.  This reduces cpu load by
+  50% on my system.
+- Bugfix: Ensure that all plugin exit functions are called on leaving.
+- Bugfix: if keypress event is received (very early in the startup process,
+  the daemon would crash.  Check that expected pointers are valid.
+- Bugfix: Dont attempt compilation of uinput plugin if headers are
+  unavailable.
+- Bugfix: Write a blank buffer to the LCD before exiting.
+- Feature: Add --lcdlevel cmdline option to allow setting default LCD brightness level
+1.9.3:
+- BugFix: The documentation for --switch was inverted. Fix.
+- Debug: Print list of commandline args when in debug mode
+- BugFix: The decreased delay caused keypresses to be misread on some
+  machines.  REVERT.
+1.9.4
+- Debug:   Log warning if keyboard disappears.
+- Bugfix:  Fix autoconf autodetect bugs re uinput plugin.
+- Feature: If autodetection of uinput fails, configure now has a
+           --disable-uinput override.  
+- Feature: WIP should now compile and run on Linux, MacOSX, and Solaris (v10+).
+	   Only Linux and Solaris have been tested.
+- Debug:   Add more debugging to plugin loader.
+- Debug:   Log build date,OS and GCC version.
+- Feature: Plugin loader will now use DEEP_BIND if available, hopefully
+	   resolving conflicts on OS's that support it.
+- Feature: Solaris support.  Requires some end-user changes to the usb
+	   stack at the moment.  Documentation coming soon.
+- BugFix:  Plugin loader is now much more robust.
+- Feature: Add OS specific documentation for Linux and FreeBSD.
+	   Compilation and use on FreeBSD is completely untested.
+- Feature: Debug verbosity of g15daemon_log is now variable.
+- Feature: Plugin filenames are now cached in g15daemon.conf to allow
+	   (manual, at this stage) changing of load-order.
+- Portability: Add our own daemon() function if platform doesn't have native
+	   support.
+- TidyUp:  Wrap keyboard read function.
+- TidyUp:  Make all plugin-internal functions static.
+- Portability: Remove mutexes on Solaris, as libusb (and therefore libg15)
+	   blocks on read.
+- Optimisation: Use pthread conditional variable to signal LCD state change.
+	   Further reduces unnecessary wakeups.
+1.9.5
+- Add example udev helper scripts to contrib directory.
+- API:	  Add NEVER_SELECT cmd to client API to enforce non-display on
+	  client-switch.  Used by G15Macro if available.
+- Debug:  Add segfault handler to libg15daemon_client to aid debugging
+	  clients.
+- Feature: Add screendump ability.  Pressing M1+M3 simultaneously will write
+	  a pbm format image of the currently displayed screen to 
+	  /tmp/g15daemon-sc-?.pbm, where ? is an incremental number.
+- BugFix: Only wakeup display thread if LCD buffer is visible.
+- Packaging: Fix debian packaging to include plugins.
+1.9.5.1:
+- BugFix: If lcd refresh is requested whilst processing, refreshes were missed.
+- Optimisation: The delay between screen updates is no longer required. remove.
+1.9.5.2:
+- BugFix: IS_USER_SELECTED client command was broken. fix it.
+- BugFix: restore client ability to change backlight state.
+1.9.5.3:
+- BugFix: plugins/g15daemon_net.c: ensure that OOB traffic is not mixed with
+          normal image buffers.
+- Feature: Add --set-backlight to allow clients (and the backlight button)
+	to set the backlight level for the currently shown screen only.  Default is
+	now to disallow clients changing backlight, and to set backlight globally
+	via the button.

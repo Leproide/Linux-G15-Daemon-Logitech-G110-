@@ -1,0 +1,29 @@
+https://code.google.com/p/logitech-keyboard-change-color/
+License: GNU GPL v2
+
+Compiling the code
+
+(these instructions are for Ubuntu)
+
+    You need a compiler:
+
+    sudo apt-get install build-essential
+
+    and subversion:
+
+    sudo apt-get install subversion
+
+    Install libusb-dev (this is a dependency):
+
+    sudo apt-get install libusb-dev
+
+    Check out the source code:
+
+     svn checkout http://logitech-keyboard-change-color.googlecode.com/svn/trunk/ logitech-keyboard-change-color-read-only
+
+    Compile the project:
+
+    cd logitech-keyboard-change-color-read-only
+    make
+
+

@@ -1,0 +1,35 @@
+This directory contains misc. scripts and handy stuff for the G15daemon
+user.
+
+It currently has:
+
+xmodmaprc
+- enables support for the extra G15 keys in Xorg.
+
+xkb-xorg-7.1-g15daemon.patch
+- patch against xorg 7.1 xkb datafiles, adds a new keyboard definition
+enabling full native support for the g15 keys in the Xserver (via
+g15daemon).
+To Use:
+cd /usr/share/X11/
+patch -p0 <xkb-xorg-7.1-g15daemon.patch
+
+Restart the Xserver, and a new keyboard type should be available in the
+KDE/Gnome keyboard selection applet: "Logitech G15 keyboard support via G15Daemon".
+Select that and apply, and all keys will be available for use as hotkeys etc.
+If you use this xkb patch, the xmodmap procedure is not necessary.
+
+If you prefer, you can also edit your Xorg configuration, adding the 
+Option "XkbModel" "g15daemon" line in your keyboard section.
+
+Section "InputDevice"
+    Identifier "Keyboard1"
+    Driver "kbd"
+    Option "XkbModel" "g15daemon"
+    Option "XkbLayout" "us"
+    Option "XkbOptions" "compose:rwin"
+EndSection
+
+>>>> EDIT -> as of 30/10/06, xorg cvs has this patch included.  If you're
+>>>> using a newer version of Xorg or xkeyboard-config, you may not need to use this patch.  The
+>>>> keyboard model included in Xorg is called logitech_g15, not g15daemon.

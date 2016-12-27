@@ -1,0 +1,25 @@
+G15macro:
+
+A simple Macro recording/playback app for G15Daemon.
+
+Requires X11, libg15render, and the XTEST extension headers to compile, and
+XTEST extension in order to function.
+
+Features:
+- records both keyboard and mouse activity, playback via 'G' hotkey
+- up to 56 macros can be created (using the 'M' keys to select a palette).
+- Each macro can have up to 128 steps
+
+Usage:
+
+To Record a macro :-
+1. Press the 'M' key for the palette you wish to set, if not already selected.
+2. Press the MR key
+3. Enter the keystrokes required
+4. Press the 'G' key you want to hold the macro.
+
+To Playback a previously recorded macro :-
+1. Press the 'M' key for the palette you wish to playback, if not already selected.
+2. Press the 'G' key containing the macro.
+
+

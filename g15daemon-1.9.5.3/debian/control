@@ -1,0 +1,28 @@
+Source: g15daemon
+Section: utils
+Priority: optional
+Maintainer: Anthony J. Mirabella <mirabeaj@gmail.com>
+Build-Depends: debhelper (>= 4.0.0), autotools-dev, libg15-dev, libg15render-dev
+Standards-Version: 3.6.2
+
+Package: g15daemon
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libg15daemon-client (= ${Source-Version})
+Description: Screen multiplexer for Logitech G15 Keyboard
+ G15daemon provides multiple virtual screens for the LCD on the Logitech
+ G15 Keyboard
+
+Package: libg15daemon-client
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: Client library for communicating with g15daemon
+ Provides interface functions for clients that wish to communicate with
+ a running instance of g15daemon
+
+Package: libg15daemon-client-dev
+Section: libdevel
+Architecture: any
+Depends: libg15daemon-client (= ${Source-Version})
+Description: Development packages for libg15daemon-client
+ Includes the files needed for developing g15daemon clients

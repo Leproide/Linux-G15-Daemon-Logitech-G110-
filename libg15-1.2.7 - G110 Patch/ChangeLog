@@ -1,0 +1,51 @@
+1.0 
+* Initial Release
+1.0.1
+* Change transfer type from interrupt to bulk for keypresses, which resolves
+  problems for some people
+1.1.0
+* Add header define to allow for api version changes
+* Add exitLibG15() to reset the device back to factory defaults on library exit.
+1.1.1
+* Add basic support for the G11 keyboard
+* revert all bulk transfers - bulk transfers are illegal for low-speed
+  devices, and cause -22 (EINVAL) warnings on new kernels.
+* pass most errors to the client app.
+1.2.1
+* Add debugging function to enable/disable extra output
+* All debugging output is now prefixed with libg15 to aid localising
+  problems.
+* debugging function now also controls libusb debugging output.
+* Try to claim usb interface up to 10 times before failing
+* Slow down initialisation, to allow keyboard to come out of usb
+  auto-suspend on newer kernels.
+* Attempt to combat ENOSPC by slowing down writes to the lcd if ENOSPC is received.  
+  Unless that error occurs at least once, transfers are sent as normal.
+* Add function to change keyboard backlight (independant of lcd backlight).
+* Add re-initialising function, which will attempt to reconnect a keyboard
+  that was previously removed and replugged.
+* libg15 now uses pthread mutexes to force sequential access to the bus via libusb. 
+  Control message URBs are no longer being lost if sent by a different
+  thread in the middle of a screen transfer etc.
+* Reset the keyboard before init to ensure correct initialisation on kernels > 2.6.19
+1.2.2
+* Add support for the logitech Z-10 speakers - many thanks to Dwayne Fontenot for
+  detailed information and debugging.
+1.2.3
+* Add support for the newer G15 keyboards which have amber backlights and
+  six 'G' keys.
+1.2.4
+* Turns out that the newer G15's have a different (5 byte) keyboard protocol.  
+* Optimise dumpPixmapIntoLCDFormat routine - Thanks to Adam Nielsen
+1.2.5
+* Remove 5BYTE_RETURN flag and process key packets based on length. Please
+  report any regressions.
+* Add Solaris detection and remove locks if detected.  Solaris' libUSB
+  blocks on read, forcing mutexes causes writes to block too.
+1.2.6
+* Re-Add 5BYTE_RETURN flag. Auto-detect does not work with Solaris' libusb.
+* Add laptop GamePanel support.
+1.2.7
+* Fix keypress detection for G15v2 keyboards
+1.3
+* Add support for the G13 device

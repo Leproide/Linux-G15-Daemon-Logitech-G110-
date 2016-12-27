@@ -1,0 +1,30 @@
+$Revision: 377 $ 
+$Date: 2008-01-01 21:56:13 +1030 (Tue, 01 Jan 2008) $
+$Author: mlampard $
+
+**** IMPORTANT NOTICE *******************************************************
+*** Please Note: G15Daemon is completely untested on FreeBSD.  
+*** 		 Please report success or failure, any additional steps taken
+***		 and Operating System version to mlampard@users.sf.net
+******************************************************************************
+
+In order for G15Daemon to be able to claim the usb device needed for the LCD and extra keys, 
+the following _kernel_ configuration changes may be necessary:
+
+First test if ugen is already enabled:
+	- Plug in the keyboard or other supported USB device.
+	- dmesg |grep "ugen"
+	- you should see a line similar to "ugen0: Logitech G15 Keyboard"
+
+If not already enabled:
+
+   For FreeBSD versions 5.4 and below, and version 6.0:
+	Disable uhid
+	Enable ugen
+
+   For FreeBSD versions 5.5, 6.1 and higher:
+	Enable ugen
+
+   Recompile the kernel and reboot.
+
+NetBSD and OpenBSD are not supported at this time due to libusb deficiencies on those platforms.

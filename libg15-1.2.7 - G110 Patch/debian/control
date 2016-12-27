@@ -1,0 +1,21 @@
+Source: libg15
+Priority: optional
+Maintainer: Mike Lampard <mlampard@users.sourceforge.net>
+Build-Depends: debhelper (>= 4.0.0), autotools-dev, libusb-dev
+Standards-Version: 3.6.2
+Section: libs
+
+Package: libg15-dev
+Section: libdevel
+Architecture: any
+Depends: libg15 (= ${Source-Version})
+Description: Development packages for libg15
+ Includes the files needed for developing software that uses libg15.
+
+Package: libg15
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Library for interfacing with the Logitech G15 Keyboard
+ Provides for low-level control of the lcd and extra keys on the 
+ Logitech G15 keyboard.
