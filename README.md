@@ -25,6 +25,7 @@ G15 Daemon + G15 Macro + Led Control for G110 and other Logitech keyboard on Lin
 * ./configure
 * make
 * sudo make install
+
 In case you have this error "libg15render-1.2 not found" see this https://github.com/Leproide/Linux-G15-Daemon-Logitech-G110-/issues/2
 
 ---
