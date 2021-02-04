@@ -419,7 +419,7 @@ void dump_config(FILE *configfile)
           fprintf(configfile,"\n");
           for(i=0;i<mstates[mkey_state]->gkeys[gkey].keysequence.record_steps;i++){
             key = XKeycodeToKeysym(dpy,mstates[mkey_state]->gkeys[gkey].keysequence.recorded_keypress[i].keycode,0);
-            fprintf(configfile,"\t%s %s %u\n",XKeysymToString(key),mstates[mkey_state]->gkeys[gkey].keysequence.recorded_keypress[i].pressed?"Down":"Up",(unsigned int)mstates[mkey_state]->gkeys[gkey].keysequence.recorded_keypress[i].modifiers);
+            fprintf(configfile,"\t%s %s %u %u\n",XKeysymToString(key),mstates[mkey_state]->gkeys[gkey].keysequence.recorded_keypress[i].pressed?"Down":"Up",(unsigned int)mstates[mkey_state]->gkeys[gkey].keysequence.recorded_keypress[i].modifiers,mstates[mkey_state]->gkeys[gkey].keysequence.recorded_keypress[i].time_ms);
         }
       }
      }
@@ -465,11 +465,15 @@ void restore_config(char *filename) {
       char codestr[64];
       char pressed[20];
       unsigned int modifiers = 0;
-      sscanf(tmpstring,"\t%s %s %i\n",(char*)&codestr,(char*)&pressed,&modifiers);
+      unsigned long time_ms = 0;
+      int argslenght = sscanf(tmpstring,"\t%s %s %i %lu\n",(char*)&codestr,(char*)&pressed,&modifiers,&time_ms);
       keycode = XKeysymToKeycode(dpy,XStringToKeysym(codestr));
       mstates[mkey]->gkeys[key].keysequence.recorded_keypress[i].keycode = keycode;
       mstates[mkey]->gkeys[key].keysequence.recorded_keypress[i].pressed = strncmp(pressed,"Up",2)?1:0;
       mstates[mkey]->gkeys[key].keysequence.recorded_keypress[i].modifiers = modifiers;
+      if(argslenght > 3) {
+        mstates[mkey]->gkeys[key].keysequence.recorded_keypress[i].time_ms = time_ms;
+      }
       mstates[mkey]->gkeys[key].keysequence.record_steps=++i;     
     }
   }  while(!feof(f));
